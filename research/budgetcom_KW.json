@@ -1,0 +1,54 @@
+{
+ "cities": [
+  "/en/locations/kw/kuwait",
+  "/en/locations/kw/safat",
+  "/en/locations/kw/sharq"
+ ],
+ "branches": {
+  "/en/locations/kw/kuwait/c37": {
+   "url": "https://www.budget.com/en/locations/kw/kuwait/c37",
+   "name": "Budget Kuwait Kuwait Airport",
+   "brand": "Budget Kuwait",
+   "street": "Kw T4 - Airport Branch",
+   "city": "Kuwait",
+   "region": "Kuwait",
+   "postal_code": "15458",
+   "phone": "(965) 66180888",
+   "opening_hours": "Sun - Sat open 24 hrs",
+   "lat": 29.251852,
+   "lng": 47.962194
+  },
+  "/en/locations/kw/kuwait/c73": {
+   "url": "https://www.budget.com/en/locations/kw/kuwait/c73",
+   "name": "Budget Kuwait Kuwait",
+   "brand": "Budget Kuwait",
+   "street": "Alrai - Alrai Branch",
+   "city": "Kuwait",
+   "region": "Kuwait",
+   "postal_code": "15458",
+   "phone": "(965) 22408444 /999",
+   "opening_hours": "Sun - Thu 8:00 AM - 3:45 PM; Sat 8:00 AM - 12:15 PM",
+   "lat": 29.308227,
+   "lng": 47.927894
+  },
+  "/en/locations/kw/safat/kwi": {
+   "url": "https://www.budget.com/en/locations/kw/safat/kwi",
+   "name": "Budget Kuwait Safat Airport",
+   "brand": "Budget Kuwait",
+   "street": "Kuwait International Airport",
+   "city": "Safat",
+   "region": "Safat",
+   "postal_code": "15458",
+   "phone": "(965) 24347 768",
+   "opening_hours": "Sun - Sat open 24 hrs",
+   "lat": 29.240499,
+   "lng": 47.971008
+  }
+ },
+ "done:/en/locations/kw/kuwait": true,
+ "done:/en/locations/kw/safat": true,
+ "done:/en/locations/kw/sharq": true,
+ "scanned:/en/locations/kw/kuwait": true,
+ "scanned:/en/locations/kw/safat": true,
+ "scanned:/en/locations/kw/sharq": true
+}

@@ -1,0 +1,94 @@
+{
+ "cities": [
+  "/en/locations/om/duqm",
+  "/en/locations/om/muscat",
+  "/en/locations/om/salalah",
+  "/en/locations/om/sohar",
+  "/en/locations/om/sur"
+ ],
+ "branches": {
+  "/en/locations/om/duqm/dq9": {
+   "url": "https://www.budget.com/en/locations/om/duqm/dq9",
+   "name": "Budget Oman Duqm",
+   "brand": "Budget Oman",
+   "street": "Duqm Downtown",
+   "city": "Duqm",
+   "region": "Duqm",
+   "postal_code": "100",
+   "phone": "(968) 91405659",
+   "opening_hours": "Sun - Thu 8:00 AM - 5:00 PM",
+   "lat": 19.620748,
+   "lng": 57.635588
+  },
+  "/en/locations/om/muscat/mct": {
+   "url": "https://www.budget.com/en/locations/om/muscat/mct",
+   "name": "Budget Oman Muscat Airport",
+   "brand": "Budget Oman",
+   "street": "Muscat International Airport",
+   "city": "Muscat",
+   "region": "Muscat",
+   "postal_code": "100",
+   "phone": "(968) 24356251/252",
+   "opening_hours": "Sun - Sat open 24 hrs",
+   "lat": 23.600973,
+   "lng": 58.287141
+  },
+  "/en/locations/om/muscat/ro0": {
+   "url": "https://www.budget.com/en/locations/om/muscat/ro0",
+   "name": "Budget Oman Muscat",
+   "brand": "Budget Oman",
+   "street": "Main Office, Hala Building, Al Khuwair",
+   "city": "Muscat",
+   "region": "Muscat",
+   "postal_code": "100",
+   "phone": "(968) 246 83999",
+   "opening_hours": "Sun - Thu 8:00 AM - 5:00 PM",
+   "lat": 23.58613,
+   "lng": 58.405788
+  },
+  "/en/locations/om/salalah/sll": {
+   "url": "https://www.budget.com/en/locations/om/salalah/sll",
+   "name": "Budget Oman Salalah Airport",
+   "brand": "Budget Oman",
+   "street": "Salalah Airport",
+   "city": "Salalah",
+   "region": "Salalah",
+   "postal_code": "100",
+   "phone": "(968) 99427387",
+   "opening_hours": "Sun - Sat 8:00 AM - 12:00 AM",
+   "lat": 17.04622,
+   "lng": 54.08839
+  },
+  "/en/locations/om/sohar/sh9": {
+   "url": "https://www.budget.com/en/locations/om/sohar/sh9",
+   "name": "Budget Oman Sohar",
+   "brand": "Budget Oman",
+   "street": "Al Waqaiba Block No. 2235",
+   "city": "Sohar",
+   "region": "Sohar",
+   "postal_code": "",
+   "phone": "(968) 26840392",
+   "opening_hours": "Sun - Thu 8:00 AM - 5:00 PM",
+   "lat": 24.3790371,
+   "lng": 56.7313074
+  },
+  "/en/locations/om/sur/su3": {
+   "url": "https://www.budget.com/en/locations/om/sur/su3",
+   "name": "Budget Oman Sur",
+   "brand": "Budget Oman",
+   "street": "Sur Downtown",
+   "city": "Sur",
+   "region": "Sur",
+   "postal_code": "100",
+   "phone": "(968) 25545565",
+   "opening_hours": "Sun - Thu 8:00 AM - 5:00 PM",
+   "lat": 22.57516,
+   "lng": 59.501302
+  }
+ },
+ "scanned:/en/locations/om/duqm": true,
+ "scanned:/en/locations/om/muscat": true,
+ "scanned:/en/locations/om/salalah": true,
+ "scanned:/en/locations/om/sohar": true,
+ "scanned:/en/locations/om/sur": true
+}

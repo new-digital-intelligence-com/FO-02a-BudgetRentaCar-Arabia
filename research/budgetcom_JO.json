@@ -1,0 +1,75 @@
+{
+ "cities": [
+  "/en/locations/jo/amman",
+  "/en/locations/jo/aqaba"
+ ],
+ "branches": {
+  "/en/locations/jo/amman/amm": {
+   "url": "https://www.budget.com/en/locations/jo/amman/amm",
+   "name": "Budget Jordan Amman Airport",
+   "brand": "Budget Jordan",
+   "street": "Queen Alia Intl Airport",
+   "city": "Amman",
+   "region": "Amman",
+   "postal_code": "",
+   "phone": "(962) 798997090",
+   "opening_hours": "Sun - Sat open 24 hrs",
+   "lat": 31.722391,
+   "lng": 35.986478
+  },
+  "/en/locations/jo/amman/m93": {
+   "url": "https://www.budget.com/en/locations/jo/amman/m93",
+   "name": "Budget Jordan Amman",
+   "brand": "Budget Jordan",
+   "street": "246 Mecca Street",
+   "city": "Amman",
+   "region": "Amman",
+   "postal_code": "11194",
+   "phone": "792666129",
+   "opening_hours": "Sun - Thu 9:00 AM - 4:00 PM; Sat 9:00 AM - 4:00 PM",
+   "lat": 31.9725,
+   "lng": 35.84388889
+  },
+  "/en/locations/jo/aqaba/aqj": {
+   "url": "https://www.budget.com/en/locations/jo/aqaba/aqj",
+   "name": "Budget Jordan Aqaba Airport",
+   "brand": "Budget Jordan",
+   "street": "Aqaba Airport",
+   "city": "Aqaba",
+   "region": "Aqaba",
+   "postal_code": "77110",
+   "phone": "00962 790057017",
+   "opening_hours": "Sun - Sat open 24 hrs",
+   "lat": 29.609738,
+   "lng": 35.019897
+  },
+  "/en/locations/jo/aqaba/dv8": {
+   "url": "https://www.budget.com/en/locations/jo/aqaba/dv8",
+   "name": "Budget Jordan Aqaba",
+   "brand": "Budget Jordan",
+   "street": "Aquavista Hotel Building",
+   "city": "Aqaba",
+   "region": "Aqaba",
+   "postal_code": "77110",
+   "phone": "00962 790057017",
+   "opening_hours": "Sun - Sat 7:00 AM - 9:00 PM",
+   "lat": 29.53182,
+   "lng": 35.00212
+  },
+  "/en/locations/jo/aqaba/dy0": {
+   "url": "https://www.budget.com/en/locations/jo/aqaba/dy0",
+   "name": "Budget Jordan Aqaba",
+   "brand": "Budget Jordan",
+   "street": "Wadi Araba Crossing Border",
+   "city": "Aqaba",
+   "region": "Aqaba",
+   "postal_code": "77110",
+   "phone": "790057017",
+   "opening_hours": "Sun - Sat 7:00 AM - 9:00 PM",
+   "lat": 29.5775,
+   "lng": 35.00222222
+  }
+ },
+ "scanned:/en/locations/jo/amman": true,
+ "scanned:/en/locations/jo/aqaba": true
+}

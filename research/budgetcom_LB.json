@@ -1,0 +1,64 @@
+{
+ "cities": [
+  "/en/locations/lb/beirut",
+  "/en/locations/lb/dbayeh",
+  "/en/locations/lb/sin-el-fil"
+ ],
+ "branches": {
+  "/en/locations/lb/beirut/bey": {
+   "url": "https://www.budget.com/en/locations/lb/beirut/bey",
+   "name": "Budget Lebanon Beirut Airport",
+   "brand": "Budget Lebanon",
+   "street": "Beirut International Airport",
+   "city": "Beirut",
+   "region": "Beirut",
+   "postal_code": "",
+   "phone": "009611762660",
+   "opening_hours": "Sun - Sat open 24 hrs",
+   "lat": 33.825141,
+   "lng": 35.492973
+  },
+  "/en/locations/lb/beirut/h8f": {
+   "url": "https://www.budget.com/en/locations/lb/beirut/h8f",
+   "name": "Budget Lebanon Beirut",
+   "brand": "Budget Lebanon",
+   "street": "Beirut Ashrafiye",
+   "city": "Beirut",
+   "region": "Beirut",
+   "postal_code": "",
+   "phone": "11762621",
+   "opening_hours": "Mon - Fri 8:30 AM - 6:00 PM; Sat 8:30 AM - 1:00 PM",
+   "lat": 33.887375,
+   "lng": 35.51444444
+  },
+  "/en/locations/lb/beirut/k7r": {
+   "url": "https://www.budget.com/en/locations/lb/beirut/k7r",
+   "name": "Budget Lebanon Beirut",
+   "brand": "Budget Lebanon",
+   "street": "Kantari Solidere",
+   "city": "Beirut",
+   "region": "Beirut",
+   "postal_code": "",
+   "phone": "961 1 762 616",
+   "opening_hours": "Sun 10:00 AM - 5:00 PM; Mon - Fri 8:00 AM - 8:00 PM; Sat 8:00 AM - 5:00 PM",
+   "lat": 33.895907,
+   "lng": 35.496788
+  },
+  "/en/locations/lb/sin-el-fil/le1": {
+   "url": "https://www.budget.com/en/locations/lb/sin-el-fil/le1",
+   "name": "Budget Lebanon Sin El Fil",
+   "brand": "Budget Lebanon",
+   "street": "Beirut Sin El Fil",
+   "city": "Sin El Fil",
+   "region": "Sin El Fil",
+   "postal_code": "",
+   "phone": "009611762657",
+   "opening_hours": "Mon - Fri 8:30 AM - 6:00 PM; Sat 8:30 AM - 1:00 PM",
+   "lat": 33.866285,
+   "lng": 35.530239
+  }
+ },
+ "scanned:/en/locations/lb/beirut": true,
+ "scanned:/en/locations/lb/dbayeh": true,
+ "scanned:/en/locations/lb/sin-el-fil": true
+}

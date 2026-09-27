@@ -1,0 +1,35 @@
+{
+ "cities": [
+  "/en/locations/qa/doha"
+ ],
+ "branches": {
+  "/en/locations/qa/doha/doh": {
+   "url": "https://www.budget.com/en/locations/qa/doha/doh",
+   "name": "Budget Qatar Doha Airport",
+   "brand": "Budget Qatar",
+   "street": "Hamad International Airport",
+   "city": "Doha",
+   "region": "Doha",
+   "postal_code": "",
+   "phone": "(974) 4010 8880",
+   "opening_hours": "Sun - Sat open 24 hrs",
+   "lat": 25.25947,
+   "lng": 51.61448
+  },
+  "/en/locations/qa/doha/qa5": {
+   "url": "https://www.budget.com/en/locations/qa/doha/qa5",
+   "name": "Budget Qatar Doha",
+   "brand": "Budget Qatar",
+   "street": "Barawa Village",
+   "city": "Doha",
+   "region": "Doha",
+   "postal_code": "37503",
+   "phone": "(974) 4432 5500",
+   "opening_hours": "Sun - Thu 8:00 AM - 7:00 PM; Sat 8:00 AM - 7:00 PM",
+   "lat": 25.209992,
+   "lng": 51.575605
+  }
+ },
+ "done:/en/locations/qa/doha": true,
+ "scanned:/en/locations/qa/doha": true
+}

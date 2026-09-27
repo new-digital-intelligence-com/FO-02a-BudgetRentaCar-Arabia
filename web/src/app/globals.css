@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+/* Budget colours: the navy of the Budget Saudi website (#02285f) and Budget orange. */
+@theme inline {
+  --color-budget-navy: #02285f;
+  --color-budget-orange: #f26522;
+  --color-budget-orange-dark: #d4520f;
+  --color-budget-red: #c8322b;
+  --color-budget-red-dark: #a62520;
+  --color-budget-sky: #eef2f8;
+  --color-budget-line: #c9d3e2;
+  --color-budget-page: #f5f7fb;
+  --color-budget-ink: #1d2a3a;
+  --color-budget-muted: #5b6470;
+  --font-sans: var(--font-plex-arabic);
+}
+
+body {
+  background: var(--color-budget-page);
+  color: var(--color-budget-ink);
+}
