@@ -11,5 +11,10 @@
     "https://www.budget-uae.com/en/contact-us": "6lCsh4Dt5YvFzztpYD37",
     "https://www.budget-uae.com/en/our-locations": "e6XJNX7JTyxtjjhibqU2"
   },
-  "agent_id": "agent_1801m3f12ed4e6mbhq174ky8c733"
+  "agent_id": "agent_1801m3f12ed4e6mbhq174ky8c733",
+  "tool_secret_id": "kDD7VJi1KuChr5aFjPSO",
+  "tools": {
+    "customer_lookup": "tool_1801m3hd188yfw8r1csg63cffe4m"
+  },
+  "site_url": "https://fo-02a-budget-renta-car-arabia.vercel.app"
 }

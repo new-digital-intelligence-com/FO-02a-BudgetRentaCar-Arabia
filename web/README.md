@@ -10,7 +10,15 @@ Budget website.
   `/api/agent/*` (Noura's tools, called by ElevenLabs), which checks the `x-budget-agent-secret` header instead.
 - Customer accounts (email + password) in MongoDB. A signed-in customer's calls are remembered: Noura's `customer_lookup`
   tool returns their name and the summaries of their last calls. On the phone (later, Twilio) the caller is recognised by
-  the mobile number saved in their account. Collections: `customers`, `account_sessions`, `conversations`.
+  the mobile number saved in their account. Collections: `customers`, `account_sessions`, `conversations`, `bookings`.
+- Demo bookings (`src/lib/bookings.ts`, route `/api/agent/bookings/<action>`): Noura's tools `get_price_quote`,
+  `create_booking`, `find_booking`, `change_booking`, `extend_rental`, `early_return` and `cancel_booking`. They check the
+  branch (`src/lib/branches.ts`, list in `src/data/branches.json` made by `../knowledge_base/export_branches.py`), its opening
+  hours, the dates (branch's local time zone), one hour of notice, 60 days at most, and same-country returns. Prices are demo
+  prices (`src/lib/pricing.ts`). A problem answers `ok: false` with an `error` code and a `message` telling Noura what to ask.
+  An existing booking needs its 6-digit number and the name on it (any spelling, `src/lib/text.ts`), except the caller's own
+  bookings. A signed-in customer's bookings are linked to their account, shown under «حجوزاتي» and returned by
+  `customer_lookup`.
 
 ## Run locally
 
@@ -36,6 +44,7 @@ npm run dev                  # http://localhost:3000
 | `AGENT_TOOL_SECRET` | The same value as in `.env.local` (Noura's tools send it) |
 
 4. Deploy. After changing a variable later, redeploy.
-5. Connect Noura's tools to the live site: `python ../agent/setup_agent.py https://<your-site>.vercel.app`
+5. Connect Noura's tools to the live site: `python ../agent/setup_agent.py https://<your-site>.vercel.app` (the link is
+   remembered; later runs can leave it out). Run it after deploying code that adds or changes a tool, never before.
 
 Checks before deploying: `npm run build`, `npx tsc --noEmit`, `npm run lint`.

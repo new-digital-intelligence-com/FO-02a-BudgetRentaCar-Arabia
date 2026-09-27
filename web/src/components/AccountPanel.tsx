@@ -5,7 +5,22 @@ import type { Copy } from "./copy";
 
 export type AccountCustomer = { name: string; email: string; phone: string | null };
 export type AccountCall = { startedAt: string; channel: "website" | "phone"; summary: string | null };
-export type AccountState = { customer: AccountCustomer | null; calls: AccountCall[] };
+type BookingStop = { name: string; city: string; at: string };
+/** A demo booking as /api/account sends it (see accountBooking in src/lib/bookings.ts). */
+export type AccountBooking = {
+  reservationNumber: string;
+  state: keyof Copy["bookingStates"];
+  carType: keyof Copy["carTypes"];
+  car: string;
+  timeZone: string;
+  pickup: BookingStop;
+  dropoff: BookingStop;
+  total: number;
+  currency: string;
+  returnedEarly: boolean;
+};
+export type AccountState = { customer: AccountCustomer | null; calls: AccountCall[]; bookings: AccountBooking[] };
+export const SIGNED_OUT: AccountState = { customer: null, calls: [], bookings: [] };
 
 type Props = {
   t: Copy;
@@ -68,8 +83,8 @@ function SignInForm({ t, onAccountChange }: { t: Copy; onAccountChange: (account
     );
     setBusy(false);
     if (result.customer) {
-      onAccountChange({ customer: result.customer, calls: [] });
-      // The calls come with the next account refresh.
+      onAccountChange({ ...SIGNED_OUT, customer: result.customer });
+      // The calls and bookings come with the next account refresh.
       void fetch("/api/account")
         .then((response) => response.json())
         .then((data: AccountState) => data.customer && onAccountChange(data))
@@ -171,7 +186,7 @@ function SignedIn({
 
   async function signOut() {
     await postAccount({ action: "signout" });
-    onAccountChange({ customer: null, calls: [] });
+    onAccountChange(SIGNED_OUT);
   }
 
   return (
@@ -212,6 +227,19 @@ function SignedIn({
       </div>
 
       <div>
+        <h3 className="font-bold text-budget-navy">{t.myBookings}</h3>
+        {account.bookings.length === 0 ? (
+          <p className="mt-1 text-sm text-budget-muted">{t.noBookings}</p>
+        ) : (
+          <ul className="mt-2 space-y-2">
+            {account.bookings.map((booking) => (
+              <BookingCard key={booking.reservationNumber} t={t} booking={booking} />
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div>
         <h3 className="font-bold text-budget-navy">{t.pastCalls}</h3>
         {account.calls.length === 0 ? (
           <p className="mt-1 text-sm text-budget-muted">{t.noCalls}</p>
@@ -239,5 +267,63 @@ function SignedIn({
         {t.signOut}
       </button>
     </div>
+  );
+}
+
+const STATE_STYLE: Record<AccountBooking["state"], string> = {
+  upcoming: "bg-green-100 text-green-800",
+  in_progress: "bg-budget-orange/15 text-budget-orange-dark",
+  completed: "bg-budget-line/50 text-budget-muted",
+  cancelled: "bg-red-50 text-budget-red-dark",
+};
+
+/** One demo booking: number, status, car, pick-up and return (in the branch's own time zone) and the demo price. */
+function BookingCard({ t, booking }: { t: Copy; booking: AccountBooking }) {
+  const when = new Intl.DateTimeFormat(t.locale, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: booking.timeZone,
+  });
+  const price = new Intl.NumberFormat(t.locale, { style: "currency", currency: booking.currency });
+  const cancelled = booking.state === "cancelled";
+  const stops: [string, BookingStop][] = [
+    [t.pickupLabel, booking.pickup],
+    [t.returnLabel, booking.dropoff],
+  ];
+  return (
+    <li className={`rounded-lg border border-budget-line p-3 text-sm ${cancelled ? "opacity-60" : ""}`}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="font-semibold text-budget-navy">
+          {t.reservation} <span dir="ltr" className="tabular-nums">{booking.reservationNumber}</span>
+        </p>
+        <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATE_STYLE[booking.state]}`}>
+          {t.bookingStates[booking.state]}
+        </span>
+      </div>
+      <p className="mt-1 text-budget-ink">
+        {t.carTypes[booking.carType]} · <span dir="ltr">{booking.car}</span>
+      </p>
+      <dl className="mt-2 space-y-1">
+        {stops.map(([label, stop]) => (
+          <div key={label} className="flex gap-2">
+            <dt className="w-16 shrink-0 text-xs font-semibold text-budget-muted">{label}</dt>
+            <dd className="min-w-0">
+              <span dir="ltr" className="block truncate text-budget-ink" title={stop.name}>
+                {stop.name}
+              </span>
+              <span className="text-xs text-budget-muted">{when.format(new Date(stop.at))}</span>
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <p className="mt-2 text-budget-navy">
+        {t.totalLabel}: <span className="font-semibold">{price.format(booking.total)}</span>{" "}
+        <span className="text-xs text-budget-muted">({t.demoPrice})</span>
+        {booking.returnedEarly && <span className="ms-2 text-xs text-budget-muted">· {t.returnedEarly}</span>}
+      </p>
+    </li>
   );
 }

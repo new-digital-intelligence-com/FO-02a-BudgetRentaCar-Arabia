@@ -2,7 +2,7 @@
 
 import { ConversationProvider, useConversation } from "@elevenlabs/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AccountPanel, type AccountState } from "./AccountPanel";
+import { AccountPanel, SIGNED_OUT, type AccountState } from "./AccountPanel";
 import { COPY, type UiLanguage } from "./copy";
 import { VoiceOrb } from "./VoiceOrb";
 
@@ -22,12 +22,12 @@ function Assistant() {
   const [error, setError] = useState<string | null>(null);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
-  const [account, setAccount] = useState<AccountState>({ customer: null, calls: [] });
+  const [account, setAccount] = useState<AccountState>(SIGNED_OUT);
   const [accountOpen, setAccountOpen] = useState(false);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const t = COPY[language];
 
-  /** The signed-in customer and their calls (a new call's summary arrives a little after it ends). */
+  /** The signed-in customer, their bookings and their calls (a new call's summary arrives a little after it ends). */
   const refreshAccount = useCallback(async () => {
     try {
       const response = await fetch("/api/account", { cache: "no-store" });

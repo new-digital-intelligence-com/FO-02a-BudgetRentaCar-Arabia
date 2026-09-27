@@ -1,4 +1,5 @@
 import type { ObjectId } from "mongodb";
+import { bookingView, customerBookings } from "./bookings";
 import { conversationDetails } from "./elevenlabs";
 import { collections, type ConversationDoc, type CustomerDoc } from "./mongo";
 
@@ -89,12 +90,17 @@ const RIYADH_TIME = new Intl.DateTimeFormat("en-GB", {
 
 /** What Noura's lookup tool answers about a known customer during the current call. */
 export async function memoryFor(customer: CustomerDoc, currentConversationId: string) {
-  const calls = await recentCalls(customer._id, currentConversationId);
+  const [calls, bookings] = await Promise.all([
+    recentCalls(customer._id, currentConversationId),
+    customerBookings(customer._id, { current: true }),
+  ]);
   return {
     found: true,
     name: customer.name,
     first_name: customer.name.split(/\s+/)[0],
     has_phone_on_file: Boolean(customer.phone),
+    /** Upcoming and current demo bookings, soonest first. */
+    bookings: bookings.map((booking) => bookingView(booking)),
     previous_calls: calls
       .filter((call) => call.summary)
       .map((call) => ({

@@ -4,14 +4,15 @@
 - Creates the agent with the prompt in prompt.md, the Saudi voice, Arabic by default and an English preset.
 - Attaches the knowledge-base PDFs synced from Google Drive (found by name in the workspace library), and keeps
   anything else added to the agent in the dashboard.
-- With the website's public address, adds Noura's tools (customer_lookup for the customer memory) and their part of the
-  prompt. Without it, the agent has no tools yet and the prompt does not mention them.
+- With the website's public address, adds Noura's webhook tools and prompt_memory.md: customer_lookup (the customer memory)
+  and the demo booking tools (price quote, create, find, change, extend, early return, cancel). prompt.md's reservation
+  section expects the booking tools, so run it with the site link (it is remembered after the first time).
 
 Settings come from the Budget website's own ../web/.env.local (ELEVENLABS_API_KEY, AGENT_TOOL_SECRET); environment
 variables win. Nothing is shared with any other project.
 
-Usage: python setup_agent.py [https://your-site.vercel.app]
-IDs are saved in agent_ids.json (no secrets in it). Creating or updating an agent does not use conversation credits.
+Usage: python setup_agent.py [https://your-site.vercel.app]   (the link is remembered; later runs can leave it out)
+IDs and the site link are saved in agent_ids.json (no secrets in it). Creating or updating an agent does not use conversation credits.
 """
 import json
 import os
@@ -39,9 +40,11 @@ def load_settings() -> dict[str, str]:
 
 SETTINGS = load_settings()
 KEY = SETTINGS.get("ELEVENLABS_API_KEY") or sys.exit("ELEVENLABS_API_KEY is not set (../web/.env.local)")
-# The site ElevenLabs calls for Noura's tools: argument, or PUBLIC_BASE_URL. Empty until the website is deployed.
+# The site ElevenLabs calls for Noura's tools: argument, PUBLIC_BASE_URL, or the link saved by an earlier run (so a run
+# without the link keeps the tools). Empty until the website is deployed.
 ARGS = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
-BASE_URL = (ARGS[0] if ARGS else SETTINGS.get("PUBLIC_BASE_URL", "")).rstrip("/")
+SAVED_SITE = json.load(open(IDS_FILE, encoding="utf-8")).get("site_url", "") if os.path.exists(IDS_FILE) else ""
+BASE_URL = (ARGS[0] if ARGS else SETTINGS.get("PUBLIC_BASE_URL") or SAVED_SITE).rstrip("/")
 TOOL_SECRET_NAME = "budget_agent_tool_secret"  # Budget's own workspace secret, sent as x-budget-agent-secret
 
 NAME = "Budget Arabia – Voice Assistant (Demo)"
@@ -152,26 +155,121 @@ def tool_secret_id(ids: dict) -> str:
     return secret_id
 
 
-def lookup_tool_config(secret_id: str) -> dict:
+def text_param(description: str) -> dict:
+    return {"type": "string", "description": description}
+
+
+# The same arguments in several booking tools. Dates and times are the branch's local ones.
+BRANCH = ("The {which} branch: its location code if you know it (e.g. JED), otherwise its name in English as the caller described "
+          "it (e.g. 'Jeddah airport', 'Tahlia Street').")
+CITY = "The {which} city, in English (e.g. Jeddah)."
+DATE = "The {which} date, YYYY-MM-DD."
+TIME = "The {which} time, HH:MM in 24-hour time."
+CAR_TYPE = {"type": "string", "enum": ["economy", "compact", "family_sedan", "suv", "van", "luxury"],
+            "description": "The car type the caller chose."}
+RESERVATION = text_param("The 6-digit reservation number, digits only.")
+NAME_ON_BOOKING = text_param("The name on the booking, in English letters. Not needed for the caller's own bookings from "
+                             "customer_lookup.")
+
+
+def trip_params(optional_car: bool) -> dict:
+    return {
+        "pickup_branch": text_param(BRANCH.format(which="pick-up")),
+        "pickup_city": text_param(CITY.format(which="pick-up")),
+        "pickup_date": text_param(DATE.format(which="pick-up")),
+        "pickup_time": text_param(TIME.format(which="pick-up")),
+        "return_date": text_param(DATE.format(which="return")),
+        "return_time": text_param(TIME.format(which="return") + " Leave empty for the same time as the pick-up."),
+        "return_branch": text_param("Only when the car is returned to another branch: " + BRANCH.format(which="return")),
+        "return_city": text_param("Only when the car is returned in another city: " + CITY.format(which="return")),
+        "car_type": {**CAR_TYPE, "description": "The car type. Leave empty to get the price of every type."} if optional_car else CAR_TYPE,
+    }
+
+
+# name -> (path on the website, description, extra arguments, required arguments). Every tool also gets conversation_id.
+TOOLS: dict[str, tuple[str, str, dict, list[str]]] = {
+    "customer_lookup": (
+        "/api/agent/customer-lookup",
+        "Recognise the caller. Call this once, silently, right after your greeting. It returns found=false for someone new, or the "
+        "customer's name, their upcoming bookings and short summaries of their earlier calls with you. Never mention this tool.",
+        {}, [],
+    ),
+    "get_price_quote": (
+        "/api/agent/bookings/quote",
+        "The demo price of a rental. Use it before every new booking, and whenever the caller asks what a rental costs. Without a "
+        "car type it gives the price of every type. It also checks the branch and its opening hours.",
+        trip_params(optional_car=True), ["pickup_branch", "pickup_date", "pickup_time", "return_date"],
+    ),
+    "create_booking": (
+        "/api/agent/bookings/create",
+        "Make a demo reservation. Only after the caller has heard the price and clearly confirmed every detail. Call it once. It "
+        "returns the reservation number.",
+        {**trip_params(optional_car=False), "driver_name": text_param("The driver's full name, in English letters.")},
+        ["pickup_branch", "pickup_date", "pickup_time", "return_date", "car_type", "driver_name"],
+    ),
+    "find_booking": (
+        "/api/agent/bookings/find",
+        "Look up an existing reservation and what can still be done with it. Without a reservation number it lists a known "
+        "customer's own upcoming bookings.",
+        {"reservation_number": RESERVATION, "driver_name": NAME_ON_BOOKING}, [],
+    ),
+    "change_booking": (
+        "/api/agent/bookings/change",
+        "Change a reservation that has not started: pick-up or return date, time or branch, or the car type. Give only what "
+        "changes. If only the pick-up moves, the rental keeps its length; give return_date to set the return yourself. Only after "
+        "the caller confirmed the change.",
+        {"reservation_number": RESERVATION, "driver_name": NAME_ON_BOOKING, **trip_params(optional_car=True),
+         "return_time": text_param(TIME.format(which="new return") + " Only if it changes."),
+         "car_type": {**CAR_TYPE, "description": "The new car type, only if it changes."}},
+        ["reservation_number"],
+    ),
+    "extend_rental": (
+        "/api/agent/bookings/extend",
+        "Keep the car longer: moves the return to a later date and time, before or during the rental. Only after the caller "
+        "confirmed.",
+        {"reservation_number": RESERVATION, "driver_name": NAME_ON_BOOKING,
+         "new_return_date": text_param(DATE.format(which="new return")),
+         "new_return_time": text_param(TIME.format(which="new return") + " Leave empty to keep the agreed time.")},
+        ["reservation_number", "new_return_date"],
+    ),
+    "early_return": (
+        "/api/agent/bookings/early-return",
+        "The caller brings the car back before the agreed time of a rental that has already started. The price is recalculated on "
+        "the days used. Only after the caller confirmed.",
+        {"reservation_number": RESERVATION, "driver_name": NAME_ON_BOOKING,
+         "return_date": text_param(DATE.format(which="return") + " Leave empty for today."),
+         "return_time": text_param(TIME.format(which="return") + " Leave empty for now.")},
+        ["reservation_number"],
+    ),
+    "cancel_booking": (
+        "/api/agent/bookings/cancel",
+        "Cancel a reservation that has not started. It is free. Only after the caller confirmed they want to cancel.",
+        {"reservation_number": RESERVATION, "driver_name": NAME_ON_BOOKING},
+        ["reservation_number"],
+    ),
+}
+
+
+def webhook_tool_config(name: str, secret_id: str) -> dict:
+    path, description, params, required = TOOLS[name]
     return {
         "type": "webhook",
-        "name": "customer_lookup",
-        "description": ("Recognise the caller. Call this once, silently, right after your greeting. It returns found=false for "
-                        "someone new, or the customer's name and short summaries of their earlier calls with you. Never "
-                        "mention this tool."),
-        "response_timeout_secs": 10,
+        "name": name,
+        "description": description,
+        "response_timeout_secs": 10 if name == "customer_lookup" else 20,
         "api_schema": {
-            "url": f"{BASE_URL}/api/agent/customer-lookup",
+            "url": f"{BASE_URL}{path}",
             "method": "POST",
             "request_headers": {"x-budget-agent-secret": {"secret_id": secret_id}},
             "request_body_schema": {
                 "type": "object",
-                "description": "The current conversation.",
+                "description": "The current conversation and the tool's details.",
                 "properties": {
-                    "conversation_id": {"type": "string", "description": "The current conversation id",
-                                        "dynamic_variable": "system__conversation_id"},
+                    # ElevenLabs fills it in; the API refuses a description next to a dynamic_variable
+                    "conversation_id": {"type": "string", "dynamic_variable": "system__conversation_id"},
+                    **params,
                 },
-                "required": [],
+                "required": required,
             },
         },
     }
@@ -181,15 +279,20 @@ def tool_ids(ids: dict) -> list[str]:
     """Creates or updates Noura's webhook tools on the deployed website. None before it is deployed."""
     if not BASE_URL:
         return []
-    config = lookup_tool_config(tool_secret_id(ids))
-    tools = ids.setdefault("tools", {})
-    if tools.get("customer_lookup"):
-        call("PATCH", f"/v1/convai/tools/{tools['customer_lookup']}", {"tool_config": config})
-    else:
-        tools["customer_lookup"] = call("POST", "/v1/convai/tools", {"tool_config": config})["id"]
+    if ids.get("site_url") != BASE_URL:
+        ids["site_url"] = BASE_URL
         save_ids(ids)
-        print("created tool: customer_lookup", tools["customer_lookup"])
-    return [tools["customer_lookup"]]
+    secret_id = tool_secret_id(ids)
+    tools = ids.setdefault("tools", {})
+    for name in TOOLS:
+        config = webhook_tool_config(name, secret_id)
+        if tools.get(name):
+            call("PATCH", f"/v1/convai/tools/{tools[name]}", {"tool_config": config})
+        else:
+            tools[name] = call("POST", "/v1/convai/tools", {"tool_config": config})["id"]
+            save_ids(ids)
+            print("created tool:", name, tools[name])
+    return [tools[name] for name in TOOLS]
 
 
 def conversation_config(knowledge_base: list[dict], tools: list[str]) -> dict:

@@ -20,9 +20,9 @@ Lebanon**. Saudi Arabia is covered in depth; the other 8 at a basic level (the u
 |---|---|
 | Knowledge base (6 PDFs + 10 web pages) | ✅ Done, attached to the agent |
 | Agent Noura (voice, dialects, English) | ✅ Done |
-| Website with the voice call (`web/`) | ✅ Built and tested locally; **the user deploys it on Vercel themselves** |
-| Customer accounts (email + password) and memory of past calls | ✅ Built and tested against MongoDB; **the memory tool is connected once the site is live** |
-| Booking tools: create, change, cancel, extend, early return, prices | ⏳ Next |
+| Website with the voice call (`web/`) | ✅ Live: https://fo-02a-budget-renta-car-arabia.vercel.app (**the user deploys it on Vercel themselves**) |
+| Customer accounts (email + password) and memory of past calls | ✅ Live; memory tool `customer_lookup` connected, **tested by the user: it works** (27 Sep 2026) |
+| Booking tools: price quote, create, find, change, extend, early return, cancel + «حجوزاتي» | ✅ Built and tested locally (27 Sep 2026). ⏳ **Waiting for the user to deploy**, then run `setup_agent.py` (see §6) |
 | Web search of Budget's websites during a call | ⏳ To do |
 | call_forward: hand over to a human (accidents, breakdowns, safety, billing) | ⏳ To do (simulated on the website; a real transfer needs the phone number) |
 | Twilio phone number | ⏸ Only after validation |
@@ -55,6 +55,7 @@ FO-02a - BudgetRentaCar Arabia/
 │   └── collect_branches.py, collect_branch_names.py   old attempts (secure.budgetsaudi.com blocks scraping with 403)
 ├── knowledge_base/
 │   ├── build_knowledge_base.py   builds the 6 PDFs from research/ (python build_knowledge_base.py)
+│   ├── export_branches.py        writes web/src/data/branches.json (the bookable branches, same names/hours as the PDFs)
 │   └── 01…06_Budget_*.pdf        the knowledge base (the user uploaded them to Google Drive)
 ├── agent/
 │   ├── setup_agent.py         creates/updates the ElevenLabs agent (see §5)
@@ -62,6 +63,7 @@ FO-02a - BudgetRentaCar Arabia/
 │   ├── prompt_memory.md       added to the prompt only when the memory tool is connected
 │   └── agent_ids.json         IDs of the agent and its web-page documents (no secrets)
 └── web/                       Next.js website (see web/README.md)
+    (web/AGENTS.md and web/CLAUDE.md are written by `next dev` itself: leave them)
 ```
 
 ---
@@ -77,14 +79,19 @@ FO-02a - BudgetRentaCar Arabia/
   Per-country accent voices (ElevenLabs multi-voice) were tried and **rejected by the user**: don't bring them back. An earlier male
   persona (Fahad, voice Adeeb) was also replaced.
 - TTS `eleven_flash_v2_5`, LLM `gemini-3.7-flash` (temperature 0.2), language `ar`, plus an `en` preset (English greeting).
-  Tools: `end_call`, `language_detection`.
+  Tools: `end_call`, `language_detection`, and webhook tools that send Budget's workspace secret `budget_agent_tool_secret`
+  (`kDD7VJi1KuChr5aFjPSO`) as `x-budget-agent-secret`: `customer_lookup` (`tool_1801m3hd188yfw8r1csg63cffe4m`), and the 7
+  booking tools once `setup_agent.py` has run after the deploy (their IDs go to `agent_ids.json`). All tools are defined in the
+  `TOOLS` table of `setup_agent.py`. ElevenLabs refuses a `description` next to a `dynamic_variable` in a tool's body schema.
+- The prompt gives Noura the current time with `{{system__time}}` (agent timezone Asia/Riyadh), so she can turn "next Thursday" into a date.
 - First message: «هلا وغلا، معك نورة من Budget لتأجير السيارات. كيف أقدر أخدمك اليوم؟»
 - **Names stay in English letters, everything else is translated** (user's rule): "Budget" (never «بدجت»), car brands and
   models (Toyota Camry), web and email addresses, and Quick Pass stay English. Everything else is said in Arabic: Gold → الذهبية,
   SUV → دفع رباعي, Unlimited Miles → الكيلومترات المفتوحة, and street names in Arabic.
 - The prompt has the escalation rules (accidents → 911/997 then Najm 920000560; breakdowns → roadside 800 244 3399; safety → 911;
   billing disputes → bccc@budgetsaudi.com). It asks only for the minimum (reservation number + name, or the booking details) and never takes card or ID numbers.
-  Two sections say "**not connected yet**" (reservations, transfer): replace them when those tools exist.
+  The reservation section now explains the booking tools. The transfer section still says "**not connected yet**": replace it
+  when call_forward exists.
 - There's no post-call webhook on this agent (Ellie's webhook is set on her agent only, so Budget calls never reach CDA).
 
 **Knowledge base** (16 documents attached to the agent, RAG on):
@@ -117,8 +124,26 @@ FO-02a - BudgetRentaCar Arabia/
   Summaries are read from ElevenLabs when needed (free), so no post-call webhook is required. Website calls are tied at start; phone
   calls are tied by `metadata.phone_call.external_number` = the account's number.
 
+**Demo bookings** (`web/src/lib/bookings.ts`, one route `/api/agent/bookings/<quote|create|find|change|extend|early-return|cancel>`):
+- **140 bookable branches** in the 9 countries (`web/src/data/branches.json`): the budget.com ones from the knowledge-base data
+  (minus "At Your Door" delivery), plus the 12 UAE locations of budget-uae.com (codes `AE-…`, no published hours). Branches are
+  found by code (JED) or by words ("Jeddah airport", «مطار جدة», "Tahlia Street"); Arabic and other spellings of cities work.
+  When several fit, the tool returns `branch_not_clear` with the options.
+- **Checks:** opening hours (parsed from budget.com; unknown hours are never refused), the branch's own time zone (Egypt and
+  Lebanon have summer time), at least 1 hour of notice, up to 1 year ahead, 60 days at most, return in the same country.
+- **Demo prices** (`web/src/lib/pricing.ts`), per 24 h with 1 h of grace, in SAR: economy 120, compact 150, family sedan 190,
+  SUV 280, van 330, luxury 600. 15% off from 7 days, 30% off from 28 days, one-way fee 250 to another city, then VAT. Other
+  countries: converted to their currency at fixed rates, with their VAT (Lebanon in USD).
+- **6-digit reservation numbers.** An existing booking needs the number + the name on it (any spelling: Mohammed = Muhammad =
+  محمد), except a known customer's own bookings. Change and cancel only before pick-up (cancel is free); extend before or
+  during; early return only during, price recalculated on the days used. Status comes from the times: upcoming, in progress,
+  completed, cancelled.
+- A problem is a normal answer `{ok: false, error, message}`: the `message` tells Noura what to ask. Only a crash is `system_error`.
+- Bookings made in a call tied to an account are linked to it: «حجوزاتي» / "My bookings" in the account panel, and `customer_lookup`
+  returns the upcoming ones.
+
 **MongoDB Atlas:** cluster `cluster0.98r5b88`, database `budget_demo`, collections `customers`, `account_sessions`,
-`conversations` (bookings will go here too). The link and password are in `web/.env.local`. The database is created on first use.
+`conversations`, `bookings`. The link and password are in `web/.env.local`. The database is created on first use.
 
 ---
 
@@ -127,10 +152,13 @@ FO-02a - BudgetRentaCar Arabia/
 ```bash
 # Knowledge base PDFs (after changing research data or texts)
 cd knowledge_base && python build_knowledge_base.py      # then the user replaces the files in Drive
+cd knowledge_base && python export_branches.py           # after changing branch data: the website's bookable branches
 
 # Agent: reads web/.env.local (ELEVENLABS_API_KEY, AGENT_TOOL_SECRET) — never CDA's files
-cd agent && python setup_agent.py                              # update prompt, voice, knowledge base (no tools)
-cd agent && python setup_agent.py https://<site>.vercel.app    # + Noura's tools and prompt_memory.md
+cd agent && python setup_agent.py      # update prompt, voice, knowledge base, Noura's tools and prompt_memory.md
+#   the site link is saved in agent_ids.json ("site_url"); pass a new link only if the site address changes:
+#   python setup_agent.py https://<new-site>.vercel.app
+#   on Windows, prefix with PYTHONIOENCODING=utf-8 (the output has "–" characters)
 #   refuses if the dashboard has an unpublished draft (--force to override, only if the user agrees)
 
 # Website
@@ -143,24 +171,29 @@ cd web && npm run build && npx tsc --noEmit && npm run lint    # checks
 `node --env-file=.env.local …` (sourcing it in bash breaks on the `&`). To test against MongoDB, use `MONGODB_DB=budget_demo_test` and
 drop that database afterwards.
 
+**How the booking tools were tested (27 Sep 2026)**, without spending credits: test scripts in the session's scratch folder (not
+kept in the project), run with `npx tsx --tsconfig tsconfig.json --test <file>` from `web/` (add `--env-file=.env.local` and
+`MONGODB_DB=budget_demo_test` for the database tests): 8 logic tests (names, time zones, branch search, hours, prices, rules) and
+7 database tests (create, repeat, find, change, extend, early return, cancel, customer_lookup). Then the routes over HTTP on
+`next dev` (port 3107, test database) and screenshots of the panel with Edge through `playwright-core` (`channel: "msedge"`).
+
 ---
 
 ## 6. Next steps (in order)
 
-1. **The user deploys `web/` on Vercel**:
-   - Root Directory `web`, and paste the 6 lines of `web/.env.local` into Environment Variables.
-   - MongoDB Atlas → Network Access must allow **0.0.0.0/0**.
-   - Then the user sends the site link, and you run `python agent/setup_agent.py <link>`. It stores Budget's own secret
-     `budget_agent_tool_secret` in ElevenLabs, creates the `customer_lookup` tool and adds `prompt_memory.md`.
-   - Then give the user test steps: sign up with a mobile number, call, call again → Noura greets them by name and remembers.
-2. **Booking tools** (webhook tools in `web/src/app/api/agent/…`, stored in MongoDB):
-   - The tools: create, find/modify, cancel, extend, early return, and a price quote with demo prices (Budget publishes no prices;
-     say clearly they are demo prices).
-   - The new reservation needs pick-up branch (the branch list from `research/budgetcom_*.json`), dates, return branch, car type
-     and name. An existing one needs the reservation number + name.
-   - Signed-in customers' bookings are linked to their account, and `customer_lookup` returns them.
-   - Show "My bookings" in the account panel.
-   - Replace the "not connected yet" reservation section of `prompt.md`.
+1. ~~**Deploy on Vercel and connect the memory tool**~~ ✅ Done on 27 Sep 2026. Checked on the live site (free): the password lock,
+   the tool secret (401 without it, 200 with it), and MongoDB access from Vercel. The user tested it (sign up, call, call again →
+   Noura greets them by name and remembers the first call): it works.
+   - Vercel settings for later: Root Directory `web`, the 6 lines of `web/.env.local` in Environment Variables, and MongoDB
+     Atlas → Network Access allows **0.0.0.0/0**.
+   - After a code change that adds env values, the user adds them in Vercel and redeploys.
+2. **Booking tools: built (27 Sep 2026), now deploy and connect them, in this order:**
+   1. The user deploys the new `web/` code (no new env values). The repo's remote is
+      github.com/new-digital-intelligence-com/FO-02a---BudgetRentaCar-Arabia; commit or push only if the user asks.
+   2. Check the live route exists (free): POST `/api/agent/bookings/quote` with the secret header must answer JSON, not 404.
+   3. Then run `python agent/setup_agent.py`: it creates the 7 booking tools and sends the new prompt (booking section,
+      `{{system__time}}`) and `prompt_memory.md`. **Never before the deploy**: Noura would call tools that do not exist yet.
+   4. Give the user the booking tests of §7.
 3. **Web search tool:** a server route using Claude with web search restricted to Budget domains (budgetsaudi.com, budget-uae.com,
    budget.com and the country sites). It needs an Anthropic API key for this project: ask the user (don't reuse CDA's without asking).
 4. **call_forward:**
@@ -181,3 +214,15 @@ drop that database afterwards.
 | «السيارة خربت في الطريق، وش أسوي؟» | Roadside assistance 800 244 3399, and 911 first if anyone is in danger |
 | «وش مميزات العضوية الذهبية؟» | «الذهبية» in Arabic: 300 km/day, extra 7% off walk-in rates; "Budget" in English |
 | "What time does the Riyadh airport branch open?" | In English: open 24 hours |
+
+Booking tests (after §6 step 2), signed in on the site:
+
+| Say | Expected |
+|---|---|
+| «أبغى أحجز سيارة من مطار جدة يوم الخميس الساعة عشرة الصبح لثلاث أيام» | She asks the car type, gives a total with «سعر تجريبي», asks the driver's name, repeats everything, books after your yes, and gives a 6-digit number in two groups. It appears in «حجوزاتي» |
+| «أبغى أحجز من مطار الرياض» | She asks which one: Terminal 5, or the international airport (terminals 1 and 2) |
+| A pick-up at the Abha Andalus Park branch on a Friday at 10 in the morning | Closed: she gives Friday's hours (16:30 to 23:00) and asks for another time |
+| Call again: «أبغى أغيّر حجزي لسيارة دفع رباعي» | She knows your booking (no number needed), confirms it, gives the new price, changes it after your yes |
+| «أبغى أمدد الحجز يوم زيادة» / «أبغى ألغي الحجز» | New return date and extra cost / free cancellation after your yes |
+| Signed out: «عندي حجز رقم …» with a wrong name | She asks for the name again and never says the real one |
+| "I'd like to book an SUV in Dubai" | English, prices in dirhams (AED) |

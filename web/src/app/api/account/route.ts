@@ -8,6 +8,7 @@ import {
   signUp,
   startAccountSession,
 } from "@/lib/accounts";
+import { accountBookings, customerBookings } from "@/lib/bookings";
 import { recentCalls } from "@/lib/memory";
 import { mongoConfigured } from "@/lib/mongo";
 
@@ -15,16 +16,17 @@ function text(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
-/** The signed-in customer and their latest calls with Noura, or customer=null. */
+/** The signed-in customer, their demo bookings and their latest calls with Noura, or customer=null. */
 export async function GET() {
-  if (!mongoConfigured()) return Response.json({ customer: null, calls: [] });
+  if (!mongoConfigured()) return Response.json({ customer: null, calls: [], bookings: [] });
   try {
     const customer = await currentCustomer();
-    if (!customer) return Response.json({ customer: null, calls: [] });
-    const calls = await recentCalls(customer._id);
+    if (!customer) return Response.json({ customer: null, calls: [], bookings: [] });
+    const [calls, bookings] = await Promise.all([recentCalls(customer._id), customerBookings(customer._id)]);
     return Response.json({
       customer: publicCustomer(customer),
       calls: calls.map(({ startedAt, channel, summary }) => ({ startedAt: startedAt.toISOString(), channel, summary })),
+      bookings: accountBookings(bookings),
     });
   } catch (error) {
     console.error(error);
