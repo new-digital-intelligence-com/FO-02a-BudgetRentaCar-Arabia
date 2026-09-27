@@ -20,6 +20,9 @@ Budget website.
   bookings. A signed-in customer's bookings are linked to their account, shown under «حجوزاتي» and returned by
   `customer_lookup`.
 
+- `/docs`: the project documentation (`src/app/docs`). Update `src/app/docs/data.ts` (status, changelog, next steps, tools)
+  with every change to the project; branch counts, prices and booking limits are read from the code.
+
 ## Run locally
 
 ```bash

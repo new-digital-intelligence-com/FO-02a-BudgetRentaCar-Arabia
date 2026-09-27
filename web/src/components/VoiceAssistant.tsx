@@ -1,6 +1,7 @@
 "use client";
 
 import { ConversationProvider, useConversation } from "@elevenlabs/react";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AccountPanel, SIGNED_OUT, type AccountState } from "./AccountPanel";
 import { COPY, type UiLanguage } from "./copy";
@@ -263,7 +264,10 @@ function Assistant() {
 
       <footer className="px-4 pb-6 text-center text-xs text-budget-muted">
         {t.footer}
-        <form action="/api/logout" method="post" className="mt-2">
+        <form action="/api/logout" method="post" className="mt-2 flex justify-center gap-4">
+          <Link href="/docs" className="underline underline-offset-4 hover:text-budget-navy">
+            {t.docsLink}
+          </Link>
           <button type="submit" className="underline underline-offset-4 hover:text-budget-navy">
             {t.lockDemo}
           </button>

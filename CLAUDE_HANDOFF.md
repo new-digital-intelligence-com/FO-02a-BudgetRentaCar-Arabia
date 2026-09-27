@@ -22,7 +22,8 @@ Lebanon**. Saudi Arabia is covered in depth; the other 8 at a basic level (the u
 | Agent Noura (voice, dialects, English) | ✅ Done |
 | Website with the voice call (`web/`) | ✅ Live: https://fo-02a-budget-renta-car-arabia.vercel.app (**the user deploys it on Vercel themselves**) |
 | Customer accounts (email + password) and memory of past calls | ✅ Live; memory tool `customer_lookup` connected, **tested by the user: it works** (27 Sep 2026) |
-| Booking tools: price quote, create, find, change, extend, early return, cancel + «حجوزاتي» | ✅ Live and connected to Noura (27 Sep 2026). Waiting for the user's test (§7) |
+| Booking tools: price quote, create, find, change, extend, early return, cancel + «حجوزاتي» | ✅ Live and connected to Noura, **tested by the user: it works** (27 Sep 2026) |
+| Project docs page `/docs` | ✅ Live (27 Sep 2026). Keep it up to date with every change (§2) |
 | Web search of Budget's websites during a call | ⏳ To do |
 | call_forward: hand over to a human (accidents, breakdowns, safety, billing) | ⏳ To do (simulated on the website; a real transfer needs the phone number) |
 | Twilio phone number | ⏸ Only after validation |
@@ -36,11 +37,18 @@ Lebanon**. Saudi Arabia is covered in depth; the other 8 at a basic level (the u
   questions with the expected answers instead. Don't even request a voice token from `/api/voice/token`, because it creates a
   conversation record.
 - **One step at a time, in simple English, with short answers.** The user isn't a native English speaker, and long messages frustrate them.
-- **The user deploys to Vercel themselves.** Don't run `gh` or `vercel` commands. Give them the settings instead.
+- **Always commit and push when a change is done, without asking** (the user's standing rule, 27 Sep 2026). The author is
+  always **HelmiDev03 <helmipaty@gmail.com>** (the repo's git config already has it; never change it). Vercel deploys each
+  push to `main` by itself. Then, if a tool changed, run `setup_agent.py` after the deploy is live (never before).
+- **Don't run `gh` or `vercel` commands.** Give the user the Vercel settings instead.
 - **Local settings:** write the real values into `web/.env.local` when asked. Don't lecture about security.
 - **The user also edits the agent in the ElevenLabs dashboard.** `agent/setup_agent.py` refuses to overwrite an unpublished dashboard
   draft; tell the user to publish or discard it first.
 - **Verify before claiming a cause** (API checks, docs, logs).
+- **Keep the `/docs` page up to date with every change** (the user's request, 27 Sep 2026): a new feature, a changed rule, a
+  fix, a new status. Update `web/src/app/docs/data.ts` (status of the modules, changelog with the date, next steps, tools list)
+  and any text in `web/src/app/docs/page.tsx` that describes the changed part. Branch counts, prices and booking limits are read
+  from the code, so they need no update. The docs are in English, for the team and Budget; they go live with the next deploy.
 
 ---
 
@@ -63,6 +71,7 @@ FO-02a - BudgetRentaCar Arabia/
 │   ├── prompt_memory.md       added to the prompt only when the memory tool is connected
 │   └── agent_ids.json         IDs of the agent and its web-page documents (no secrets)
 └── web/                       Next.js website (see web/README.md)
+    ├── src/app/docs/          the /docs page: project documentation (page.tsx = layout and texts, data.ts = what changes)
     (web/AGENTS.md and web/CLAUDE.md are written by `next dev` itself: leave them)
 ```
 
@@ -129,6 +138,8 @@ FO-02a - BudgetRentaCar Arabia/
   voice orb, status, timer, mute and a live transcript, plus sample questions and a demo notice.
 - The site password (`SITE_PASSWORD`, cookie `budget_demo_session`) locks everything except `/api/agent/*` (Noura's tools, checked with
   the `x-budget-agent-secret` header).
+- **`/docs`**: the project documentation in English (overview, status, how it works, Noura, knowledge base, website, accounts,
+  bookings, tools, handover, security, next steps, changelog), behind the site password, linked from the demo's footer.
 - `/api/voice/token` gives a one-use WebRTC token (the key stays on the server). It also ties the call to the signed-in customer, and
   `/api/voice/started` does the same once the call connects.
 - **Accounts:** email + password (scrypt), optional mobile number (the identity for the phone channel later), cookie `budget_account`.
@@ -201,9 +212,10 @@ kept in the project), run with `npx tsx --tsconfig tsconfig.json --test <file>` 
      Atlas → Network Access allows **0.0.0.0/0**.
    - After a code change that adds env values, the user adds them in Vercel and redeploys.
 2. ~~**Booking tools**~~ ✅ Done on 27 Sep 2026: the user pushed and deployed (commit "booking"; the repo's remote is
-   github.com/new-digital-intelligence-com/FO-02a---BudgetRentaCar-Arabia, and Vercel deploys on push; commit or push only if
-   the user asks). Live routes checked (free), then `setup_agent.py` created the 7 tools and sent the new prompt. The user now
-   tests with §7. Rule for later tool changes: **deploy the website first, then run `setup_agent.py`**, never the other way.
+   github.com/new-digital-intelligence-com/FO-02a---BudgetRentaCar-Arabia, branch `main`, and Vercel deploys on push; since
+   27 Sep we commit and push ourselves, see §2). Live routes checked (free), then `setup_agent.py` created the 7 tools and sent
+   the new prompt. The user tested it: it works. Rule for later tool changes: **deploy the website first, then run
+   `setup_agent.py`**, never the other way.
 3. **Web search tool:** a server route using Claude with web search restricted to Budget domains (budgetsaudi.com, budget-uae.com,
    budget.com and the country sites). It needs an Anthropic API key for this project: ask the user (don't reuse CDA's without asking).
 4. **call_forward:**

@@ -52,8 +52,8 @@ function text(input: ToolInput, key: string): string {
 }
 
 /** A pick-up must be booked at least this long ahead. */
-const NOTICE_MS = 60 * 60 * 1000;
-const MAX_AHEAD_MS = 365 * 24 * 60 * 60 * 1000;
+export const NOTICE_MS = 60 * 60 * 1000;
+export const MAX_AHEAD_MS = 365 * 24 * 60 * 60 * 1000;
 /** An early return a few minutes in the past means "now". */
 const NOW_TOLERANCE_MS = 15 * 60 * 1000;
 

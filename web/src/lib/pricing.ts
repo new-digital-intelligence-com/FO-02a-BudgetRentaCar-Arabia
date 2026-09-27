@@ -21,7 +21,7 @@ export function isCarType(value: unknown): value is CarType {
 }
 
 /** Each country's currency and VAT. Prices are the Saudi ones converted at a fixed demo rate, rounded to `step`. */
-const MONEY: Record<CountryCode, { currency: string; perSar: number; step: number; decimals: number; vat: number }> = {
+export const MONEY: Record<CountryCode, { currency: string; perSar: number; step: number; decimals: number; vat: number }> = {
   SA: { currency: "SAR", perSar: 1, step: 1, decimals: 2, vat: 0.15 },
   AE: { currency: "AED", perSar: 0.98, step: 1, decimals: 2, vat: 0.05 },
   KW: { currency: "KWD", perSar: 0.082, step: 0.5, decimals: 3, vat: 0 },
@@ -34,18 +34,21 @@ const MONEY: Record<CountryCode, { currency: string; perSar: number; step: numbe
 };
 
 /** Returning the car in another city (same country). */
-const ONE_WAY_FEE_SAR = 250;
+export const ONE_WAY_FEE_SAR = 250;
 /** Longest demo rental; longer needs are leasing. */
 export const MAX_RENTAL_DAYS = 60;
 const HOUR_MS = 60 * 60 * 1000;
 /** A rental day is 24 hours, with one hour of grace before another day starts. */
-const GRACE_MS = HOUR_MS;
+export const GRACE_MS = HOUR_MS;
 
-/** Lower daily rates for longer rentals: 15% off from 7 days (weekly), 30% off from 28 days (monthly). */
+/** Lower daily rates for longer rentals (weekly, monthly), longest first. */
+export const LONG_RENTAL_DISCOUNTS = [
+  { fromDays: 28, off: 0.3 },
+  { fromDays: 7, off: 0.15 },
+];
+
 function discountFor(days: number): number {
-  if (days >= 28) return 0.3;
-  if (days >= 7) return 0.15;
-  return 0;
+  return LONG_RENTAL_DISCOUNTS.find((tier) => days >= tier.fromDays)?.off ?? 0;
 }
 
 export function rentalDays(pickupAt: Date, returnAt: Date): number {
