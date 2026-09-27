@@ -212,7 +212,7 @@ kept in the project), run with `npx tsx --tsconfig tsconfig.json --test <file>` 
      Atlas → Network Access allows **0.0.0.0/0**.
    - After a code change that adds env values, the user adds them in Vercel and redeploys.
 2. ~~**Booking tools**~~ ✅ Done on 27 Sep 2026: the user pushed and deployed (commit "booking"; the repo's remote is
-   github.com/new-digital-intelligence-com/FO-02a---BudgetRentaCar-Arabia, branch `main`, and Vercel deploys on push; since
+   github.com/new-digital-intelligence-com/FO-02a-BudgetRentaCar-Arabia, branch `main`, and Vercel deploys on push; since
    27 Sep we commit and push ourselves, see §2). Live routes checked (free), then `setup_agent.py` created the 7 tools and sent
    the new prompt. The user tested it: it works. Rule for later tool changes: **deploy the website first, then run
    `setup_agent.py`**, never the other way.
