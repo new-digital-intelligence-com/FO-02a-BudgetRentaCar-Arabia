@@ -14,7 +14,14 @@
   "agent_id": "agent_1801m3f12ed4e6mbhq174ky8c733",
   "tool_secret_id": "kDD7VJi1KuChr5aFjPSO",
   "tools": {
-    "customer_lookup": "tool_1801m3hd188yfw8r1csg63cffe4m"
+    "customer_lookup": "tool_1801m3hd188yfw8r1csg63cffe4m",
+    "get_price_quote": "tool_8601m3hkjd21erw9f15nrn6xy9mc",
+    "create_booking": "tool_4601m3hkjecce5qrqsfsv8pywtj1",
+    "find_booking": "tool_6001m3hkjfp6fsrt6fvtzqx383rc",
+    "change_booking": "tool_5701m3hkjgzzfxe8q8wsasqtz9xr",
+    "extend_rental": "tool_6301m3hkjhf7ff2ar34rbhny2v7r",
+    "early_return": "tool_4001m3hkjjrne3tr0jz75hxrvb7w",
+    "cancel_booking": "tool_4901m3hkjm87f3katf9wnk80gxr7"
   },
   "site_url": "https://fo-02a-budget-renta-car-arabia.vercel.app"
 }

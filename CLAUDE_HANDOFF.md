@@ -22,7 +22,7 @@ Lebanon**. Saudi Arabia is covered in depth; the other 8 at a basic level (the u
 | Agent Noura (voice, dialects, English) | ✅ Done |
 | Website with the voice call (`web/`) | ✅ Live: https://fo-02a-budget-renta-car-arabia.vercel.app (**the user deploys it on Vercel themselves**) |
 | Customer accounts (email + password) and memory of past calls | ✅ Live; memory tool `customer_lookup` connected, **tested by the user: it works** (27 Sep 2026) |
-| Booking tools: price quote, create, find, change, extend, early return, cancel + «حجوزاتي» | ✅ Built and tested locally (27 Sep 2026). ⏳ **Waiting for the user to deploy**, then run `setup_agent.py` (see §6) |
+| Booking tools: price quote, create, find, change, extend, early return, cancel + «حجوزاتي» | ✅ Live and connected to Noura (27 Sep 2026). Waiting for the user's test (§7) |
 | Web search of Budget's websites during a call | ⏳ To do |
 | call_forward: hand over to a human (accidents, breakdowns, safety, billing) | ⏳ To do (simulated on the website; a real transfer needs the phone number) |
 | Twilio phone number | ⏸ Only after validation |
@@ -78,11 +78,24 @@ FO-02a - BudgetRentaCar Arabia/
 - **One voice only: "Amal – Rich & Sophisticated"** (`QtQamNJjpordEbNFIlz3`, Saudi, Hijazi touch), chosen by the user.
   Per-country accent voices (ElevenLabs multi-voice) were tried and **rejected by the user**: don't bring them back. An earlier male
   persona (Fahad, voice Adeeb) was also replaced.
-- TTS `eleven_flash_v2_5`, LLM `gemini-3.7-flash` (temperature 0.2), language `ar`, plus an `en` preset (English greeting).
+- **Voice model: `eleven_v3_conversational`** (Eleven v3 Conversational) with `expressive_mode: true` (the API does not switch
+  it on by itself), for Arabic and the English preset. **Tested and chosen by the user on 27 Sep 2026: keep it.** Same price per
+  minute as Flash in Agents; about 280 ms latency. Amal is a Professional Voice Clone (ElevenLabs warns v3 may not reproduce
+  PVCs faithfully), but the user is happy with how she sounds. If ever going back to Flash (constants at the top of
+  `setup_agent.py`): `eleven_flash_v2_5` for Arabic and **`eleven_flash_v2`** for the English preset, because with the Flash
+  models ElevenLabs refuses v2.5 for English ("English Agents must use turbo or flash v2", checked with a temporary agent); a
+  call started with the site's English switch stayed silent because of it until that was fixed.
+- Checked in the call history (27 Sep 2026): the English switch works (English greeting), and switching to English mid-call
+  with `language_detection` works.
+- LLM `gemini-3.7-flash` (temperature 0.2), language `ar`, plus an `en` preset (English greeting).
+- The prompt tells Noura to check the language of every caller turn, the first one included (a caller who spoke English first
+  got an Arabic greeting by name from the memory example).
   Tools: `end_call`, `language_detection`, and webhook tools that send Budget's workspace secret `budget_agent_tool_secret`
-  (`kDD7VJi1KuChr5aFjPSO`) as `x-budget-agent-secret`: `customer_lookup` (`tool_1801m3hd188yfw8r1csg63cffe4m`), and the 7
-  booking tools once `setup_agent.py` has run after the deploy (their IDs go to `agent_ids.json`). All tools are defined in the
-  `TOOLS` table of `setup_agent.py`. ElevenLabs refuses a `description` next to a `dynamic_variable` in a tool's body schema.
+  (`kDD7VJi1KuChr5aFjPSO`) as `x-budget-agent-secret`: `customer_lookup` (`tool_1801m3hd188yfw8r1csg63cffe4m`) and the 7
+  booking tools `get_price_quote`, `create_booking`, `find_booking`, `change_booking`, `extend_rental`, `early_return`,
+  `cancel_booking` (IDs in `agent_ids.json`). All tools are defined in the `TOOLS` table of `setup_agent.py`. ElevenLabs refuses
+  a `description` next to a `dynamic_variable` in a tool's body schema. `setup_agent.py` checks for a dashboard draft before
+  changing anything.
 - The prompt gives Noura the current time with `{{system__time}}` (agent timezone Asia/Riyadh), so she can turn "next Thursday" into a date.
 - First message: «هلا وغلا، معك نورة من Budget لتأجير السيارات. كيف أقدر أخدمك اليوم؟»
 - **Names stay in English letters, everything else is translated** (user's rule): "Budget" (never «بدجت»), car brands and
@@ -187,13 +200,10 @@ kept in the project), run with `npx tsx --tsconfig tsconfig.json --test <file>` 
    - Vercel settings for later: Root Directory `web`, the 6 lines of `web/.env.local` in Environment Variables, and MongoDB
      Atlas → Network Access allows **0.0.0.0/0**.
    - After a code change that adds env values, the user adds them in Vercel and redeploys.
-2. **Booking tools: built (27 Sep 2026), now deploy and connect them, in this order:**
-   1. The user deploys the new `web/` code (no new env values). The repo's remote is
-      github.com/new-digital-intelligence-com/FO-02a---BudgetRentaCar-Arabia; commit or push only if the user asks.
-   2. Check the live route exists (free): POST `/api/agent/bookings/quote` with the secret header must answer JSON, not 404.
-   3. Then run `python agent/setup_agent.py`: it creates the 7 booking tools and sends the new prompt (booking section,
-      `{{system__time}}`) and `prompt_memory.md`. **Never before the deploy**: Noura would call tools that do not exist yet.
-   4. Give the user the booking tests of §7.
+2. ~~**Booking tools**~~ ✅ Done on 27 Sep 2026: the user pushed and deployed (commit "booking"; the repo's remote is
+   github.com/new-digital-intelligence-com/FO-02a---BudgetRentaCar-Arabia, and Vercel deploys on push; commit or push only if
+   the user asks). Live routes checked (free), then `setup_agent.py` created the 7 tools and sent the new prompt. The user now
+   tests with §7. Rule for later tool changes: **deploy the website first, then run `setup_agent.py`**, never the other way.
 3. **Web search tool:** a server route using Claude with web search restricted to Budget domains (budgetsaudi.com, budget-uae.com,
    budget.com and the country sites). It needs an Anthropic API key for this project: ask the user (don't reuse CDA's without asking).
 4. **call_forward:**
@@ -215,7 +225,7 @@ kept in the project), run with `npx tsx --tsconfig tsconfig.json --test <file>` 
 | «وش مميزات العضوية الذهبية؟» | «الذهبية» in Arabic: 300 km/day, extra 7% off walk-in rates; "Budget" in English |
 | "What time does the Riyadh airport branch open?" | In English: open 24 hours |
 
-Booking tests (after §6 step 2), signed in on the site:
+Booking tests, signed in on the site:
 
 | Say | Expected |
 |---|---|

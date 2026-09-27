@@ -48,7 +48,13 @@ BASE_URL = (ARGS[0] if ARGS else SETTINGS.get("PUBLIC_BASE_URL") or SAVED_SITE).
 TOOL_SECRET_NAME = "budget_agent_tool_secret"  # Budget's own workspace secret, sent as x-budget-agent-secret
 
 NAME = "Budget Arabia – Voice Assistant (Demo)"
-TTS_MODEL = "eleven_flash_v2_5"  # low latency; every voice below is verified in Arabic for it
+# Eleven v3 Conversational, the expressive agents model, for both languages: tested and chosen by the user on 27 Sep 2026
+# (Amal still sounds right, although she is a Professional Voice Clone, which ElevenLabs says v3 may not reproduce faithfully).
+# The Flash models used before: TTS_MODEL = "eleven_flash_v2_5" (Amal is verified in Arabic for it), EN_TTS_MODEL = "eleven_flash_v2".
+TTS_MODEL = "eleven_v3_conversational"
+# With the Flash models, English must use an English "v2" model: with v2.5 ElevenLabs refuses the config ("English Agents must
+# use turbo or flash v2"), and a call started in English never begins, so Noura stays silent (found 27 Sep 2026).
+EN_TTS_MODEL = "eleven_v3_conversational"
 LLM = "gemini-3.7-flash"
 # "Budget" stays in English letters: the voice says it better than the Arabic spelling (user, 26 Sep 2026).
 FIRST_MESSAGE_AR = "هلا وغلا، معك نورة من Budget لتأجير السيارات. كيف أقدر أخدمك اليوم؟"
@@ -321,6 +327,8 @@ def conversation_config(knowledge_base: list[dict], tools: list[str]) -> dict:
             },
         },
         "tts": {"model_id": TTS_MODEL, "voice_id": VOICE[0], "stability": 0.5, "similarity_boost": 0.8, "speed": 1.0,
+                # v3 Conversational's expressive delivery; the dashboard switches it on with the model, the API does not
+                "expressive_mode": TTS_MODEL == "eleven_v3_conversational",
                 "agent_output_audio_format": "pcm_24000", "optimize_streaming_latency": 3,
                 "supported_voices": [{"label": label, "voice_id": voice_id, "description": description}
                                      for label, (voice_id, _owner, _name, description) in ACCENT_VOICES.items()]},
@@ -328,7 +336,7 @@ def conversation_config(knowledge_base: list[dict], tools: list[str]) -> dict:
         "turn": {"turn_timeout": 7, "mode": "turn", "turn_eagerness": "normal"},
         "conversation": {"max_duration_seconds": 600},
         "language_presets": {
-            "en": {"overrides": {"agent": {"first_message": FIRST_MESSAGE_EN, "language": "en"}, "tts": {"model_id": TTS_MODEL}}},
+            "en": {"overrides": {"agent": {"first_message": FIRST_MESSAGE_EN, "language": "en"}, "tts": {"model_id": EN_TTS_MODEL}}},
         },
     }
 
@@ -341,6 +349,12 @@ PLATFORM_SETTINGS = {
 
 def main() -> None:
     ids = load_ids()
+    if ids.get("agent_id") and "--force" not in sys.argv:
+        # Someone may be editing the agent in the dashboard: never overwrite an unpublished draft. Checked before anything
+        # changes, tools included.
+        branches = call("GET", f"/v1/convai/agents/{ids['agent_id']}/branches").get("results", [])
+        if any(branch.get("draft_exists") for branch in branches):
+            sys.exit("The agent has an unpublished draft in the dashboard: publish or discard it first (or run with --force).")
     ensure_voices()
     tools = tool_ids(ids)
     web_docs = url_documents(ids) + library_pdfs()
@@ -354,10 +368,6 @@ def main() -> None:
         save_ids(ids)
         print("created agent:", ids["agent_id"])
     else:
-        # Someone may be editing the agent in the dashboard: never overwrite an unpublished draft.
-        branches = call("GET", f"/v1/convai/agents/{ids['agent_id']}/branches").get("results", [])
-        if any(branch.get("draft_exists") for branch in branches) and "--force" not in sys.argv:
-            sys.exit("The agent has an unpublished draft in the dashboard: publish or discard it first (or run with --force).")
         current = call("GET", f"/v1/convai/agents/{ids['agent_id']}")
         ours = {d["id"] for d in web_docs} | {d["name"] for d in web_docs}
         kept = [d for d in current["conversation_config"]["agent"]["prompt"].get("knowledge_base", [])
