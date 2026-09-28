@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Copy } from "./copy";
+import { transcriptText } from "./transcriptText";
 
 export type AccountCustomer = { name: string; email: string; phone: string | null };
 export type AccountCall = { startedAt: string; channel: "website" | "phone"; summary: string | null };
@@ -251,7 +252,7 @@ function SignedIn({
                   {dateFormat.format(new Date(call.startedAt))} · {call.channel === "phone" ? t.channelPhone : t.channelWebsite}
                 </p>
                 <p dir="auto" className="mt-1 text-budget-ink">
-                  {call.summary === null ? t.summaryPending : call.summary || t.noSummary}
+                  {call.summary === null ? t.summaryPending : transcriptText(call.summary) || t.noSummary}
                 </p>
               </li>
             ))}

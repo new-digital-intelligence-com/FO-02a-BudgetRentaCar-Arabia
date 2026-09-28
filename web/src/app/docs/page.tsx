@@ -349,7 +349,8 @@ function Noura() {
               Names stay in English letters: Budget, car brands and models (Toyota Camry), websites, Quick Pass. Everything else is
               said in Arabic: Gold is <Arabic>الذهبية</Arabic>, SUV is <Arabic>دفع رباعي</Arabic>, and street names are in Arabic.
             </>,
-            "Short sentences and one question at a time. Phone and reservation numbers are said slowly, in small groups.",
+            "Short sentences and one question at a time. Phone and reservation numbers are said slowly, digit by digit, in small groups.",
+            "Numbers are written with the digits 0-9, so the transcript shows 920004124, never Arabic-Indic digits or number words. ElevenLabs' normaliser turns the digits into correct speech.",
             "She answers only from Budget's documents and never invents a branch, number, price or rule. Points Budget does not publish are presented as common practice, to be confirmed.",
             "She asks only for what a task needs, and never accepts card, CVV, ID, iqama or passport numbers, or passwords.",
             "She stays on Budget car rental and does not talk about competitors.",
@@ -414,7 +415,7 @@ function Website() {
       <Bullets
         items={[
           "Arabic, right to left, by default, with an English switch. The switch also sets the language of the next call.",
-          "The call screen: a voice orb that moves with the voices, the call status and timer, a mute button, and the live transcript of the call.",
+          "The call screen: a voice orb that moves with the voices, the call status and timer, a mute button, and the live transcript of the call (numbers in 0-9, voice tags hidden).",
           "Sample questions and the list of what Noura can help with.",
           "The whole site is locked by a demo password. Only Noura's tools can reach the site without it, with their own secret key.",
           "Hosted on Vercel. Each push to the project's GitHub repository deploys the new version.",

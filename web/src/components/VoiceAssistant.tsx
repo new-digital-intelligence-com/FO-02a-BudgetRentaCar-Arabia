@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AccountPanel, SIGNED_OUT, type AccountState } from "./AccountPanel";
 import { COPY, type UiLanguage } from "./copy";
+import { transcriptText } from "./transcriptText";
 import { VoiceOrb } from "./VoiceOrb";
 
 type Line = { id: string; role: "user" | "agent"; text: string };
@@ -46,7 +47,8 @@ function Assistant() {
 
   const conversation = useConversation({
     onMessage: ({ message, role }) => {
-      setLines((current) => [...current, { id: crypto.randomUUID(), role, text: message }]);
+      const text = transcriptText(message);
+      if (text) setLines((current) => [...current, { id: crypto.randomUUID(), role, text }]);
     },
     onConnect: ({ conversationId }) => {
       setStartedAt(Date.now());

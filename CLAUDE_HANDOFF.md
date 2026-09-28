@@ -97,6 +97,12 @@ FO-02a - BudgetRentaCar Arabia/
 - Checked in the call history (27 Sep 2026): the English switch works (English greeting), and switching to English mid-call
   with `language_detection` works.
 - LLM `gemini-3.7-flash` (temperature 0.2), language `ar`, plus an `en` preset (English greeting).
+- **Numbers (user's rule, 28 Sep 2026): the transcript shows 0-9 digits (920004124), never Arabic-Indic digits or words.** So
+  `text_normalisation_type` is `elevenlabs` (ElevenLabs normalises numbers for speech after the LLM; the default
+  `system_prompt` made the LLM write number words), the prompt says to write every number with 0-9, and phone/reservation
+  numbers are written digit by digit with spaces («9 2 0، 0 0 4، 1 2 4») so the voice reads them slowly. The website's
+  `web/src/components/transcriptText.ts` joins such digit runs (4+ digits), turns ٠-٩ into 0-9 and hides v3 voice tags
+  like `[happy]`, in the transcript and in the call summaries of «حسابي».
 - The prompt tells Noura to check the language of every caller turn, the first one included (a caller who spoke English first
   got an Arabic greeting by name from the memory example).
   Tools: `end_call`, `language_detection`, and webhook tools that send Budget's workspace secret `budget_agent_tool_secret`

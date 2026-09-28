@@ -4,7 +4,7 @@
  * (branches, prices, booking rules) are read from it directly in page.tsx and need no update here.
  */
 
-export const LAST_UPDATED = "27 September 2026";
+export const LAST_UPDATED = "28 September 2026";
 
 export type Status = "live" | "planned" | "later";
 
@@ -70,6 +70,13 @@ export const ROADMAP: { title: string; detail: string }[] = [
 ];
 
 export const CHANGELOG: { date: string; items: string[] }[] = [
+  {
+    date: "28 September 2026",
+    items: [
+      "Numbers in the call transcript are shown with the digits 0-9 (for example 920004124), never as Arabic-Indic digits or as words. Noura writes digits and ElevenLabs' own normaliser turns them into speech, so she still says phone and reservation numbers slowly, digit by digit.",
+      "The voice tags of the v3 model (such as [happy]) are hidden from the transcript.",
+    ],
+  },
   {
     date: "27 September 2026",
     items: [

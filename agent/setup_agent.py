@@ -329,6 +329,9 @@ def conversation_config(knowledge_base: list[dict], tools: list[str]) -> dict:
         "tts": {"model_id": TTS_MODEL, "voice_id": VOICE[0], "stability": 0.5, "similarity_boost": 0.8, "speed": 1.0,
                 # v3 Conversational's expressive delivery; the dashboard switches it on with the model, the API does not
                 "expressive_mode": TTS_MODEL == "eleven_v3_conversational",
+                # Numbers are normalised for speech by ElevenLabs after the LLM, so Noura writes digits and the transcript
+                # shows 920004124, not number words ("system_prompt", the default, makes the LLM write words).
+                "text_normalisation_type": "elevenlabs",
                 "agent_output_audio_format": "pcm_24000", "optimize_streaming_latency": 3,
                 "supported_voices": [{"label": label, "voice_id": voice_id, "description": description}
                                      for label, (voice_id, _owner, _name, description) in ACCENT_VOICES.items()]},
